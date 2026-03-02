@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ttfinfo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <h1>ttfinfo</h1>
+      <p>Drop a font file and inspect supported Unicode blocks in-browser.</p>
+      <div class="chip">local-only: uploaded font data never leaves this tab</div>
+    </header>
+
+    <section class="grid">
+      <aside class="stack">
+        <section class="panel body">
+          <h2>Load Font</h2>
+          <div id="drop" class="drop" tabindex="0" role="button" aria-label="Drop font file">
+            <p><b>Drop TTF / OTF / TTC</b></p>
+            <p class="s">or click to choose a file</p>
+            <button id="pick" class="btn" type="button">Select Font</button>
+          </div>
+          <input id="file" type="file" accept=".ttf,.otf,.ttc,font/ttf,font/otf" hidden />
+          <p id="status" class="status">Loading Unicode block catalog...</p>
+        </section>
+
+        <section class="panel body">
+          <h2>Font Info</h2>
+          <div class="meta">
+            <div class="r"><span class="k">File</span><span id="mFile" class="v">-</span></div>
+            <div class="r"><span class="k">Family</span><span id="mFamily" class="v">-</span></div>
+            <div class="r"><span class="k">Style</span><span id="mStyle" class="v">-</span></div>
+            <div class="r"><span class="k">Glyphs</span><span id="mGlyphs" class="v">-</span></div>
+            <div class="r"><span class="k">Mapped Glyphs</span><span id="mMappedGlyphs" class="v">-</span></div>
+            <div class="r"><span class="k">Unmapped Glyphs</span><span id="mUnmappedGlyphs" class="v">-</span></div>
+            <div class="r"><span class="k">Codepoints</span><span id="mPoints" class="v">-</span></div>
+            <div class="r"><span class="k">Blocks Hit</span><span id="mBlocks" class="v">-</span></div>
+          </div>
+          <div id="sample" class="sample">-</div>
+        </section>
+      </aside>
+
+      <section class="panel blocks-panel">
+        <div class="head">
+          <h2>Unicode Blocks</h2>
+          <label class="check"><input id="onlySupported" type="checkbox" checked />supported blocks only</label>
+        </div>
+        <input id="search" class="search" type="text" placeholder="Search block name or U+ range" />
+        <div id="list" class="list"></div>
+      </section>
+
+      <section class="panel viewer">
+        <div class="head">
+          <div>
+            <h2 id="bTitle">No block selected</h2>
+            <p id="bRange" class="range">Upload a font to inspect coverage.</p>
+          </div>
+          <div class="metrics">
+            <div class="m"><strong id="vSupported">0</strong><span>supported</span></div>
+            <div class="m"><strong id="vTotal">0</strong><span>block size</span></div>
+            <div class="m"><strong id="vPercent">0%</strong><span>coverage</span></div>
+          </div>
+        </div>
+
+        <div class="tool">
+          <div class="opts">
+            <label class="check"><input id="showSupported" type="checkbox" checked />show supported</label>
+            <label class="check"><input id="showUnsupported" type="checkbox" />show unsupported</label>
+            <label class="check"><input id="infiniteMode" type="checkbox" />infinite scroll</label>
+          </div>
+          <div class="pager">
+            <button id="prev" type="button">Prev</button>
+            <span id="page">-</span>
+            <button id="next" type="button">Next</button>
+          </div>
+        </div>
+
+        <div id="glyphs" class="glyphs"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
