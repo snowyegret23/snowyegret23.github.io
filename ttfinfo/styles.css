@@ -429,7 +429,7 @@ body {
 }
 
 .g {
-  min-height: 82px;
+  min-height: 96px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(7, 19, 33, 0.72);
@@ -453,6 +453,16 @@ body {
 .gh {
   font: 0.65rem "IBM Plex Mono", monospace;
   color: var(--muted);
+  text-align: center;
+}
+
+.gn {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 0.6rem "IBM Plex Mono", monospace;
+  color: rgba(159, 184, 206, 0.86);
   text-align: center;
 }
 

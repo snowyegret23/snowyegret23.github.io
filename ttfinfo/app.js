@@ -3,6 +3,11 @@ const MODULE_URLS = [
   "https://esm.sh/unicode-block@1.0.1"
 ];
 
+const UNICODE_NAME_MODULE_URLS = [
+  "https://cdn.jsdelivr.net/npm/unicode-name@1.1.0/+esm",
+  "https://esm.sh/unicode-name@1.1.0"
+];
+
 const FALLBACK_BLOCKS = [
   ["0000", "007F", "Basic Latin"],
   ["0080", "00FF", "Latin-1 Supplement"],
@@ -67,7 +72,11 @@ const state = {
   cacheData: null,
   previewFace: null,
   previewUrl: "",
-  previewFamily: ""
+  previewFamily: "",
+  unicodeNameFn: null,
+  unicodeNameLoading: null,
+  unicodeNameFailed: false,
+  nameCache: new Map()
 };
 
 const $ = (id) => document.getElementById(id);
@@ -97,6 +106,7 @@ const ui = {
   showSupported: $("showSupported"),
   showUnsupported: $("showUnsupported"),
   infiniteMode: $("infiniteMode"),
+  showIsoName: $("showIsoName"),
   prev: $("prev"),
   next: $("next"),
   page: $("page"),
@@ -196,6 +206,14 @@ function bindEvents() {
 
   ui.infiniteMode.addEventListener("change", () => {
     resetViewport();
+    renderDetail(true);
+  });
+
+  ui.showIsoName.addEventListener("change", async () => {
+    if (ui.showIsoName.checked) {
+      setStatus("Loading Unicode character names...", "warn");
+      await ensureUnicodeNameResolver();
+    }
     renderDetail(true);
   });
 
@@ -1072,11 +1090,13 @@ function renderGlyphCards(codePoints, supportedSet, append) {
   }
 
   const fragment = document.createDocumentFragment();
+  const showIsoName = ui.showIsoName.checked;
   for (const cp of codePoints) {
     const hasGlyph = supportedSet.has(cp);
     const card = document.createElement("div");
     card.className = `g${hasGlyph ? "" : " off"}`;
-    card.title = `${hex(cp)}${hasGlyph ? "" : " (not mapped)"}`;
+    const isoName = showIsoName ? getIsoName(cp) : "";
+    card.title = `${hex(cp)}${hasGlyph ? "" : " (not mapped)"}${isoName ? `\n${isoName}` : ""}`;
 
     const char = document.createElement("div");
     char.className = "gc";
@@ -1087,6 +1107,12 @@ function renderGlyphCards(codePoints, supportedSet, append) {
     code.textContent = hex(cp);
 
     card.append(char, code);
+    if (showIsoName && isoName) {
+      const name = document.createElement("div");
+      name.className = "gn";
+      name.textContent = isoName;
+      card.append(name);
+    }
     fragment.append(card);
   }
 
@@ -1113,6 +1139,80 @@ function sampleText(points) {
     }
   }
   return out.length ? out.join(" ") : "No printable sample in mapped code points.";
+}
+
+async function ensureUnicodeNameResolver() {
+  if (state.unicodeNameFn) {
+    return true;
+  }
+  if (state.unicodeNameFailed) {
+    return false;
+  }
+  if (state.unicodeNameLoading) {
+    return state.unicodeNameLoading;
+  }
+
+  state.unicodeNameLoading = (async () => {
+    for (const url of UNICODE_NAME_MODULE_URLS) {
+      try {
+        const mod = await import(url);
+        const fn =
+          (typeof mod.unicodeName === "function" && mod.unicodeName) ||
+          (typeof mod.default === "function" && mod.default) ||
+          (typeof mod.getName === "function" && mod.getName);
+        if (fn) {
+          state.unicodeNameFn = fn;
+          state.unicodeNameFailed = false;
+          return true;
+        }
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    state.unicodeNameFailed = true;
+    setStatus("Unicode names unavailable. Keeping code point labels only.", "warn");
+    return false;
+  })();
+
+  const loaded = await state.unicodeNameLoading;
+  state.unicodeNameLoading = null;
+  return loaded;
+}
+
+function getIsoName(codePoint) {
+  if (state.nameCache.has(codePoint)) {
+    return state.nameCache.get(codePoint);
+  }
+
+  if (!state.unicodeNameFn) {
+    return "";
+  }
+
+  let raw = "";
+  try {
+    raw = String(state.unicodeNameFn(codePoint) || "").trim();
+  } catch (_error) {
+    raw = "";
+  }
+
+  const value = raw ? formatUnicodeName(raw) : "";
+  state.nameCache.set(codePoint, value);
+  return value;
+}
+
+function formatUnicodeName(name) {
+  if (!name) {
+    return "";
+  }
+  if (name.startsWith("<") && name.endsWith(">")) {
+    return name;
+  }
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((token) => (token ? token[0].toUpperCase() + token.slice(1) : token))
+    .join(" ");
 }
 
 function glyphPreview(codePoint) {

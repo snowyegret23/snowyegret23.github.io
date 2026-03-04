@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRFNA Info / BRFNA Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <h1>BRFNA Info / BRFNA Builder</h1>
+      <p>Analyze a BRFNA file and build a new BRFNA directly in-browser.</p>
+      <div class="chip">local-only: files never leave this tab</div>
+    </header>
+
+    <section class="grid">
+      <aside class="stack">
+        <section class="panel body">
+          <h2>BRFNA Info</h2>
+          <div id="dropBrfna" class="drop" tabindex="0" role="button" aria-label="Drop BRFNA file">
+            <p><b>Drop BRFNA</b></p>
+            <p class="s">or click to choose a file</p>
+            <button id="pickBrfna" class="btn" type="button">Select File</button>
+          </div>
+          <input id="fileBrfna" type="file" accept=".brfna,.brfnt,.befna,application/octet-stream" hidden />
+          <div class="inline-actions info-actions">
+            <button id="downloadPreview" class="btn secondary tiny" type="button" disabled>Download Preview PNG</button>
+          </div>
+          <p id="status" class="status">Select a BRFNA file to begin.</p>
+        </section>
+
+        <section class="panel body">
+          <div class="head-inline">
+            <h2>Summary</h2>
+            <button id="applyToBuilder" class="btn secondary" type="button" disabled>Use In Builder</button>
+          </div>
+          <div class="meta">
+            <div class="r"><span class="k">File</span><span id="mFile" class="v">-</span></div>
+            <div class="r"><span class="k">Magic</span><span id="mMagic" class="v">-</span></div>
+            <div class="r"><span class="k">Version</span><span id="mVersion" class="v">-</span></div>
+            <div class="r"><span class="k">Sections</span><span id="mSections" class="v">-</span></div>
+            <div class="r"><span class="k">File Size</span><span id="mFileSize" class="v">-</span></div>
+            <div class="r"><span class="k">Cell</span><span id="mCell" class="v">-</span></div>
+            <div class="r"><span class="k">Baseline</span><span id="mBaseline" class="v">-</span></div>
+            <div class="r"><span class="k">Encoding</span><span id="mEncoding" class="v">-</span></div>
+            <div class="r"><span class="k">Mapped</span><span id="mMapped" class="v">-</span></div>
+          </div>
+          <div id="quickInfo" class="sample">No file parsed yet.</div>
+        </section>
+      </aside>
+
+      <section class="panel section-panel">
+        <div class="head">
+          <h2>Section List</h2>
+          <button id="copyInfoJson" class="btn tiny" type="button" disabled>Copy JSON</button>
+        </div>
+        <div id="sectionList" class="list">
+          <div class="empty">Section details will appear here.</div>
+        </div>
+      </section>
+
+      <section class="panel builder-panel">
+        <div class="head">
+          <h2>BRFNA Builder</h2>
+        </div>
+
+        <form id="builderForm" class="builder-body" autocomplete="off">
+          <fieldset>
+            <legend>Required</legend>
+            <div class="form-grid">
+              <label class="field">
+                <span>Template (from info)</span>
+                <input id="templateName" type="text" placeholder="Load BRFNA in the left panel" readonly />
+              </label>
+              <label class="field">
+                <span>Font File (.ttf/.otf/.ttc)</span>
+                <input id="fontFile" type="file" accept=".ttf,.otf,.ttc,font/ttf,font/otf" />
+              </label>
+              <label class="field">
+                <span>Font Face (optional)</span>
+                <input id="fontFace" type="text" placeholder="Optional face name hint" />
+              </label>
+              <label class="field">
+                <span>Font Size</span>
+                <input id="fontSize" type="number" min="1" max="300" value="24" />
+              </label>
+            </div>
+
+            <label class="field stack-field">
+              <span>Character List</span>
+              <div class="inline-actions">
+                <button id="pickCharList" class="btn tiny" type="button">Load CharList File</button>
+                <input id="charListFile" type="file" accept=".txt,.list,text/plain" hidden />
+                <span id="charListMeta" class="mono muted">0 chars</span>
+              </div>
+              <textarea id="charListText" rows="7" placeholder="Paste characters here or load a text file."></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Optional</legend>
+            <div class="form-grid">
+              <label class="field">
+                <span>Encoding (list)</span>
+                <select id="encoding">
+                  <option value="">template/default</option>
+                  <option value="utf16">utf16</option>
+                  <option value="sjis">sjis</option>
+                  <option value="utf8">utf8</option>
+                  <option value="cp1252">cp1252</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Width Type (list)</span>
+                <select id="widthType">
+                  <option value="char">char</option>
+                  <option value="glyph">glyph</option>
+                  <option value="keepsp">keepsp</option>
+                  <option value="fixed">fixed</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Fixed Width</span>
+                <input id="fixedWidth" type="number" min="0" max="255" placeholder="used when width type = fixed" disabled />
+              </label>
+
+              <label class="field">
+                <span>Linefeed</span>
+                <input id="linefeed" type="number" min="0" max="255" placeholder="blank = keep template" />
+              </label>
+
+              <label class="field">
+                <span>Left Space</span>
+                <input id="left" type="number" min="-128" max="127" placeholder="blank = keep template" />
+              </label>
+
+              <label class="field">
+                <span>Default Width</span>
+                <input id="width" type="number" min="0" max="255" placeholder="blank = keep template" />
+              </label>
+
+              <label class="field">
+                <span>Right Space</span>
+                <input id="right" type="number" min="-128" max="127" value="0" />
+              </label>
+
+              <label class="field">
+                <span>Alternate Char</span>
+                <input id="alternateChar" type="text" placeholder="e.g. ?, U+003F, 0x003F" />
+              </label>
+            </div>
+
+            <div class="bool-grid">
+              <label class="check"><input id="glyphCrop" type="checkbox" checked />glyph crop</label>
+            </div>
+          </fieldset>
+
+          <div class="builder-actions">
+            <button id="buildDownload" class="btn" type="button" disabled>Build BRFNA & Download</button>
+            <button id="resetOptional" class="btn secondary" type="button">Reset Optional</button>
+          </div>
+
+          <div id="buildLog" class="sample">Output filename is always the same as the template input filename.</div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script src="./default-charlist.js" defer></script>
+  <script src="./vendor/opentype.min.js" defer></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
