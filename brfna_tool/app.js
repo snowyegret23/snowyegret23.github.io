@@ -881,10 +881,10 @@ function renderGlyphGridPreview(sheetGrayscaleBuffers, templateInfo, cmapPairs) 
       }
     }
 
-    const left = clampInt(item.left, -128, 127);
     const charWidth = clampInt(item.charWidth, 0, 255);
-    const rawStart = left;
-    const rawEnd = left + charWidth;
+    // CWDH charWidth is the advance width from glyph origin, not "left + width".
+    const rawStart = 0;
+    const rawEnd = charWidth;
     const clampedStart = clampInt(rawStart, 0, cellWidth);
     const clampedEnd = clampInt(rawEnd, 0, cellWidth);
     if (clampedEnd > clampedStart) {
